@@ -1,46 +1,41 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import type { AuthState, LoginData, RegisterData, User } from '@/types/auth';
-import api from '@/services/api';
+import { api } from '@/services/api';
+import type { AuthState, LoginData, RegisterData, AuthResponse } from '@/types';
 
 const initialState: AuthState = {
   user: null,
-  token: localStorage.getItem('token'),
+  token: null,
   loading: false,
   error: null,
 };
 
-export const login = createAsyncThunk(
+export const login = createAsyncThunk<AuthResponse, LoginData>(
   'auth/login',
-  async (data: LoginData) => {
-    const response = await api.post<{ user: User; token: string }>('/auth/login', data);
-    localStorage.setItem('token', response.data.token);
+  async (data) => {
+    const response = await api.post('/auth/login', data);
     return response.data;
   }
 );
 
-export const register = createAsyncThunk(
+export const register = createAsyncThunk<AuthResponse, RegisterData>(
   'auth/register',
-  async (data: RegisterData) => {
-    const response = await api.post<{ user: User; token: string }>('/auth/register', data);
-    localStorage.setItem('token', response.data.token);
+  async (data) => {
+    const response = await api.post('/auth/register', data);
     return response.data;
   }
 );
 
-export const logout = createAsyncThunk(
-  'auth/logout',
-  async () => {
-    localStorage.removeItem('token');
-  }
-);
-
-export const getCurrentUser = createAsyncThunk(
+export const getCurrentUser = createAsyncThunk<AuthResponse>(
   'auth/getCurrentUser',
   async () => {
-    const response = await api.get<User>('/auth/me');
+    const response = await api.get('/auth/me');
     return response.data;
   }
 );
+
+export const logout = createAsyncThunk('auth/logout', async () => {
+  await api.post('/auth/logout');
+});
 
 const authSlice = createSlice({
   name: 'auth',
@@ -49,15 +44,9 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
-    resetState: (state) => {
-      state.user = null;
-      state.token = null;
-      state.error = null;
-    },
   },
   extraReducers: (builder) => {
     builder
-      // Login
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -71,7 +60,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Error al iniciar sesión';
       })
-      // Register
       .addCase(register.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -85,30 +73,25 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Error al registrar usuario';
       })
-      // Logout
-      .addCase(logout.fulfilled, (state) => {
-        state.user = null;
-        state.token = null;
-        state.error = null;
-      })
-      // Get Current User
       .addCase(getCurrentUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(getCurrentUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Error al obtener usuario actual';
+      })
+      .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.token = null;
-        localStorage.removeItem('token');
       });
   },
 });
 
-export const { clearError, resetState } = authSlice.actions;
+export const { clearError } = authSlice.actions;
 export default authSlice.reducer; 

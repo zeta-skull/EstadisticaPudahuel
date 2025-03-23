@@ -2,27 +2,23 @@ export interface Report {
   id: string;
   name: string;
   description: string;
-  type: string;
-  parameters: Record<string, any>;
-  data: Record<string, any>;
+  statisticIds: string[];
+  format: 'pdf' | 'excel';
   createdAt: string;
   updatedAt: string;
 }
 
 export interface ReportData {
-  title: string;
+  name: string;
   description: string;
-  type: 'pdf' | 'excel' | 'csv';
+  type: string;
+  parameters: Record<string, any>;
+  data: Record<string, any>;
 }
 
 export interface GenerateReportData {
-  reportId: string;
-  filters?: {
-    startDate?: string;
-    endDate?: string;
-    categories?: string[];
-    [key: string]: unknown;
-  };
+  type: string;
+  parameters: Record<string, any>;
 }
 
 export interface ReportsState {

@@ -1,60 +1,71 @@
-import { useAppSelector } from './useAppSelector';
-import { useAppDispatch } from './useAppDispatch';
+import { useCallback } from 'react';
+import { useAppDispatch, useAppSelector } from './useStore';
 import {
   fetchStatistics,
   createStatistic,
   updateStatistic,
   deleteStatistic,
 } from '@/store/slices/statisticsSlice';
-import type { Statistic, StatisticData } from '@/types/statistics';
+import type { Statistic } from '@/types';
 
 export const useStatistics = () => {
   const dispatch = useAppDispatch();
-  const { statistics, loading, error } = useAppSelector((state) => state.statistics);
+  const { statistics, loading, error } = useAppSelector(
+    (state) => state.statistics
+  );
 
-  const getStatistics = async () => {
+  const fetchAll = useCallback(async () => {
     try {
       await dispatch(fetchStatistics()).unwrap();
       return true;
     } catch (error) {
       return false;
     }
-  };
+  }, [dispatch]);
 
-  const addStatistic = async (data: StatisticData) => {
-    try {
-      await dispatch(createStatistic(data)).unwrap();
-      return true;
-    } catch (error) {
-      return false;
-    }
-  };
+  const create = useCallback(
+    async (data: Omit<Statistic, 'id' | 'createdAt' | 'updatedAt'>) => {
+      try {
+        await dispatch(createStatistic(data)).unwrap();
+        return true;
+      } catch (error) {
+        return false;
+      }
+    },
+    [dispatch]
+  );
 
-  const editStatistic = async (id: string, data: StatisticData) => {
-    try {
-      await dispatch(updateStatistic({ id, data })).unwrap();
-      return true;
-    } catch (error) {
-      return false;
-    }
-  };
+  const update = useCallback(
+    async (id: string, data: Partial<Statistic>) => {
+      try {
+        await dispatch(updateStatistic({ id, data })).unwrap();
+        return true;
+      } catch (error) {
+        return false;
+      }
+    },
+    [dispatch]
+  );
 
-  const removeStatistic = async (id: string) => {
-    try {
-      await dispatch(deleteStatistic(id)).unwrap();
-      return true;
-    } catch (error) {
-      return false;
-    }
-  };
+  const remove = useCallback(
+    async (id: string) => {
+      try {
+        await dispatch(deleteStatistic(id)).unwrap();
+        return true;
+      } catch (error) {
+        return false;
+      }
+    },
+    [dispatch]
+  );
 
   return {
     statistics,
     loading,
     error,
-    getStatistics,
-    addStatistic,
-    editStatistic,
-    removeStatistic,
+    fetchAll,
+    create,
+    update,
+    remove,
   };
 }; 

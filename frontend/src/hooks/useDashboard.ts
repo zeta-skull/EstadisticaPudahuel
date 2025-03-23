@@ -1,21 +1,18 @@
-import { useAppSelector } from './useAppSelector';
-import { useAppDispatch } from './useAppDispatch';
+import { useAppDispatch, useAppSelector } from './useStore';
 import {
   fetchDashboardConfigs,
   createDashboardConfig,
   updateDashboardConfig,
   deleteDashboardConfig,
-  setDefaultDashboardConfig,
+  setCurrentConfig,
 } from '@/store/slices/dashboardSlice';
-import type { DashboardConfig, DashboardConfigData } from '@/types/dashboard';
+import type { DashboardConfig } from '@/types';
 
 export const useDashboard = () => {
   const dispatch = useAppDispatch();
-  const { configurations, currentConfiguration, loading, error } = useAppSelector(
-    (state) => state.dashboard
-  );
+  const { configurations, currentConfig, loading, error } = useAppSelector((state) => state.dashboard);
 
-  const getConfigurations = async () => {
+  const loadDashboardConfigs = async (): Promise<boolean> => {
     try {
       await dispatch(fetchDashboardConfigs()).unwrap();
       return true;
@@ -24,7 +21,7 @@ export const useDashboard = () => {
     }
   };
 
-  const addConfiguration = async (data: DashboardConfigData) => {
+  const handleCreateConfig = async (data: Omit<DashboardConfig, 'id' | 'createdAt' | 'updatedAt'>): Promise<boolean> => {
     try {
       await dispatch(createDashboardConfig(data)).unwrap();
       return true;
@@ -33,7 +30,7 @@ export const useDashboard = () => {
     }
   };
 
-  const editConfiguration = async (id: string, data: DashboardConfigData) => {
+  const handleUpdateConfig = async (id: string, data: Partial<DashboardConfig>): Promise<boolean> => {
     try {
       await dispatch(updateDashboardConfig({ id, data })).unwrap();
       return true;
@@ -42,7 +39,7 @@ export const useDashboard = () => {
     }
   };
 
-  const removeConfiguration = async (id: string) => {
+  const handleDeleteConfig = async (id: string): Promise<boolean> => {
     try {
       await dispatch(deleteDashboardConfig(id)).unwrap();
       return true;
@@ -51,9 +48,9 @@ export const useDashboard = () => {
     }
   };
 
-  const setDefaultConfiguration = async (id: string) => {
+  const handleSetCurrentConfig = async (id: string): Promise<boolean> => {
     try {
-      await dispatch(setDefaultDashboardConfig(id)).unwrap();
+      await dispatch(setCurrentConfig(id)).unwrap();
       return true;
     } catch (error) {
       return false;
@@ -62,13 +59,13 @@ export const useDashboard = () => {
 
   return {
     configurations,
-    currentConfiguration,
+    currentConfig,
     loading,
     error,
-    getConfigurations,
-    addConfiguration,
-    editConfiguration,
-    removeConfiguration,
-    setDefaultConfiguration,
+    loadDashboardConfigs,
+    createConfig: handleCreateConfig,
+    updateConfig: handleUpdateConfig,
+    deleteConfig: handleDeleteConfig,
+    setCurrentConfig: handleSetCurrentConfig,
   };
 }; 

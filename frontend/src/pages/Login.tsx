@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { login } from '../store/slices/authSlice';
 import { RootState } from '../store';
+import { AppDispatch } from '../store';
 
 const validationSchema = Yup.object({
   email: Yup.string()
@@ -27,8 +28,9 @@ const validationSchema = Yup.object({
 export const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { loading, error } = useSelector((state: RootState) => state.auth);
+  const [editingReport, setEditingReport] = useState<Report | null>(null);
 
   const from = (location.state as any)?.from?.pathname || '/';
 

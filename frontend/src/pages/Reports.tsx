@@ -27,8 +27,9 @@ import {
   Grid,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Download as DownloadIcon } from '@mui/icons-material';
-import { RootState } from '../store';
+import { RootState, AppDispatch } from '../store';
 import { fetchReports, createReport, updateReport, deleteReport, generateReport } from '../store/slices/reportsSlice';
+import { Report } from '../types/reports';
 
 interface ReportFormData {
   name: string;
@@ -45,7 +46,7 @@ const initialFormData: ReportFormData = {
 };
 
 const Reports: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { reports, loading, error } = useSelector((state: RootState) => state.reports);
   const { statistics } = useSelector((state: RootState) => state.statistics);
   const [openDialog, setOpenDialog] = useState(false);
@@ -101,11 +102,21 @@ const Reports: React.FC = () => {
     }
   };
 
-  const handleGenerateReport = async (id: string) => {
+  const handleGenerateReport = async (format: 'pdf' | 'excel') => {
     try {
-      await dispatch(generateReport(id));
+      await dispatch(generateReport({ type: format, parameters: {} })).unwrap();
+      return true;
     } catch (error) {
-      console.error('Error generating report:', error);
+      return false;
+    }
+  };
+
+  const handleUpdateReport = async (id: string, data: Partial<Report>) => {
+    try {
+      await dispatch(updateReport({ id, data })).unwrap();
+      return true;
+    } catch (error) {
+      return false;
     }
   };
 
@@ -161,7 +172,7 @@ const Reports: React.FC = () => {
                 </TableCell>
                 <TableCell>{report.format.toUpperCase()}</TableCell>
                 <TableCell>
-                  <IconButton onClick={() => handleGenerateReport(report.id)}>
+                  <IconButton onClick={() => handleGenerateReport(report.format)}>
                     <DownloadIcon />
                   </IconButton>
                   <IconButton onClick={() => handleOpenDialog(report)}>
@@ -247,4 +258,3 @@ const Reports: React.FC = () => {
 };
 
 export default Reports; 
-}; 

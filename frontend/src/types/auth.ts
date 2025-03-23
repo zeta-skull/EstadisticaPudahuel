@@ -1,8 +1,8 @@
 export interface User {
   id: string;
   email: string;
-  name: string;
-  role: string;
+  fullName: string;
+  role: 'admin' | 'user';
   createdAt: string;
   updatedAt: string;
 }
@@ -15,7 +15,7 @@ export interface LoginData {
 export interface RegisterData {
   email: string;
   password: string;
-  name: string;
+  full_name: string;
 }
 
 export interface AuthState {

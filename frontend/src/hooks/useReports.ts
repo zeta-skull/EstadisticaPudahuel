@@ -1,71 +1,71 @@
-import { useAppSelector } from './useAppSelector';
-import { useAppDispatch } from './useAppDispatch';
+import { useCallback } from 'react';
+import { useAppDispatch, useAppSelector } from './useStore';
 import {
   fetchReports,
   createReport,
   updateReport,
   deleteReport,
-  generateReport,
 } from '@/store/slices/reportsSlice';
-import type { Report, ReportData, GenerateReportData } from '@/types/reports';
+import type { Report } from '@/types';
 
 export const useReports = () => {
   const dispatch = useAppDispatch();
-  const { reports, loading, error } = useAppSelector((state) => state.reports);
+  const { reports, loading, error } = useAppSelector(
+    (state) => state.reports
+  );
 
-  const getReports = async () => {
+  const fetchAll = useCallback(async () => {
     try {
       await dispatch(fetchReports()).unwrap();
       return true;
     } catch (error) {
       return false;
     }
-  };
+  }, [dispatch]);
 
-  const addReport = async (data: ReportData) => {
-    try {
-      await dispatch(createReport(data)).unwrap();
-      return true;
-    } catch (error) {
-      return false;
-    }
-  };
+  const create = useCallback(
+    async (data: Omit<Report, 'id' | 'createdAt' | 'updatedAt'>) => {
+      try {
+        await dispatch(createReport(data)).unwrap();
+        return true;
+      } catch (error) {
+        return false;
+      }
+    },
+    [dispatch]
+  );
 
-  const editReport = async (id: string, data: ReportData) => {
-    try {
-      await dispatch(updateReport({ id, data })).unwrap();
-      return true;
-    } catch (error) {
-      return false;
-    }
-  };
+  const update = useCallback(
+    async (id: string, data: Partial<Report>) => {
+      try {
+        await dispatch(updateReport({ id, data })).unwrap();
+        return true;
+      } catch (error) {
+        return false;
+      }
+    },
+    [dispatch]
+  );
 
-  const removeReport = async (id: string) => {
-    try {
-      await dispatch(deleteReport(id)).unwrap();
-      return true;
-    } catch (error) {
-      return false;
-    }
-  };
-
-  const handleGenerateReport = async (data: GenerateReportData) => {
-    try {
-      await dispatch(generateReport(data)).unwrap();
-      return true;
-    } catch (error) {
-      return false;
-    }
-  };
+  const remove = useCallback(
+    async (id: string) => {
+      try {
+        await dispatch(deleteReport(id)).unwrap();
+        return true;
+      } catch (error) {
+        return false;
+      }
+    },
+    [dispatch]
+  );
 
   return {
     reports,
     loading,
     error,
-    getReports,
-    addReport,
-    editReport,
-    removeReport,
-    generateReport: handleGenerateReport,
+    fetchAll,
+    create,
+    update,
+    remove,
   };
 }; 

@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import type { ReportsState, Report } from '@/types/reports';
-import api from '@/services/api';
+import { api } from '@/services/api';
+import type { ReportsState, Report } from '@/types';
 
 const initialState: ReportsState = {
   reports: [],
@@ -8,10 +8,10 @@ const initialState: ReportsState = {
   error: null,
 };
 
-export const fetchReports = createAsyncThunk(
+export const fetchReports = createAsyncThunk<Report[]>(
   'reports/fetchReports',
   async () => {
-    const response = await api.get<Report[]>('/reports');
+    const response = await api.get('/reports');
     return response.data;
   }
 );
@@ -24,25 +24,25 @@ export const fetchReportById = createAsyncThunk(
   }
 );
 
-export const createReport = createAsyncThunk(
+export const createReport = createAsyncThunk<Report, Omit<Report, 'id' | 'createdAt' | 'updatedAt'>>(
   'reports/createReport',
-  async (data: Omit<Report, 'id'>) => {
-    const response = await api.post<Report>('/reports', data);
+  async (data) => {
+    const response = await api.post('/reports', data);
     return response.data;
   }
 );
 
-export const updateReport = createAsyncThunk(
-  'reports/updateReport',
-  async ({ id, data }: { id: string; data: Partial<Report> }) => {
-    const response = await api.put<Report>(`/reports/${id}`, data);
-    return response.data;
-  }
-);
+export const updateReport = createAsyncThunk<
+  Report,
+  { id: string; data: Partial<Report> }
+>('reports/updateReport', async ({ id, data }) => {
+  const response = await api.put(`/reports/${id}`, data);
+  return response.data;
+});
 
-export const deleteReport = createAsyncThunk(
+export const deleteReport = createAsyncThunk<string, string>(
   'reports/deleteReport',
-  async (id: string) => {
+  async (id) => {
     await api.delete(`/reports/${id}`);
     return id;
   }
@@ -81,7 +81,7 @@ const reportsSlice = createSlice({
       })
       .addCase(fetchReports.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Error al obtener los reportes';
+        state.error = action.error.message || 'Error al cargar reportes';
       })
       // Fetch Report by ID
       .addCase(fetchReportById.pending, (state) => {
@@ -112,7 +112,7 @@ const reportsSlice = createSlice({
       })
       .addCase(createReport.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Error al crear el reporte';
+        state.error = action.error.message || 'Error al crear reporte';
       })
       // Update Report
       .addCase(updateReport.pending, (state) => {
@@ -128,7 +128,7 @@ const reportsSlice = createSlice({
       })
       .addCase(updateReport.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Error al actualizar el reporte';
+        state.error = action.error.message || 'Error al actualizar reporte';
       })
       // Delete Report
       .addCase(deleteReport.pending, (state) => {
@@ -141,7 +141,7 @@ const reportsSlice = createSlice({
       })
       .addCase(deleteReport.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Error al eliminar el reporte';
+        state.error = action.error.message || 'Error al eliminar reporte';
       })
       // Generate Report
       .addCase(generateReport.pending, (state) => {

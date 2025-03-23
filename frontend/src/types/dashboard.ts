@@ -1,6 +1,8 @@
+export type DashboardWidgetType = 'line' | 'bar' | 'pie' | 'table';
+
 export interface DashboardWidget {
   id: string;
-  type: string;
+  type: DashboardWidgetType;
   title: string;
   position: {
     x: number;
@@ -9,6 +11,7 @@ export interface DashboardWidget {
     h: number;
   };
   config: Record<string, any>;
+  statisticId?: string;
 }
 
 export interface DashboardConfig {
@@ -24,12 +27,13 @@ export interface DashboardConfig {
 export interface DashboardConfigData {
   name: string;
   description: string;
+  isDefault: boolean;
   widgets: Omit<DashboardWidget, 'id'>[];
 }
 
 export interface DashboardState {
   configurations: DashboardConfig[];
-  currentConfiguration: DashboardConfig | null;
+  currentConfig: DashboardConfig | null;
   loading: boolean;
   error: string | null;
 } 

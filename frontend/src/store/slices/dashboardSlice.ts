@@ -1,58 +1,50 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import type { DashboardState, DashboardConfig } from '@/types/dashboard';
-import api from '@/services/api';
+import { api } from '@/services/api';
+import type { DashboardState, DashboardConfig } from '@/types';
 
 const initialState: DashboardState = {
   configurations: [],
-  currentConfiguration: null,
+  currentConfig: null,
   loading: false,
   error: null,
 };
 
-export const fetchDashboardConfigs = createAsyncThunk(
+export const fetchDashboardConfigs = createAsyncThunk<DashboardConfig[]>(
   'dashboard/fetchConfigs',
   async () => {
-    const response = await api.get<DashboardConfig[]>('/dashboard/configs');
+    const response = await api.get('/dashboard/configs');
     return response.data;
   }
 );
 
-export const fetchDashboardConfigById = createAsyncThunk(
-  'dashboard/fetchConfigById',
-  async (id: string) => {
-    const response = await api.get<DashboardConfig>(`/dashboard/configs/${id}`);
-    return response.data;
-  }
-);
-
-export const createDashboardConfig = createAsyncThunk(
+export const createDashboardConfig = createAsyncThunk<DashboardConfig, Omit<DashboardConfig, 'id' | 'createdAt' | 'updatedAt'>>(
   'dashboard/createConfig',
-  async (data: Omit<DashboardConfig, 'id'>) => {
-    const response = await api.post<DashboardConfig>('/dashboard/configs', data);
+  async (data) => {
+    const response = await api.post('/dashboard/configs', data);
     return response.data;
   }
 );
 
-export const updateDashboardConfig = createAsyncThunk(
-  'dashboard/updateConfig',
-  async ({ id, data }: { id: string; data: Partial<DashboardConfig> }) => {
-    const response = await api.put<DashboardConfig>(`/dashboard/configs/${id}`, data);
-    return response.data;
-  }
-);
+export const updateDashboardConfig = createAsyncThunk<
+  DashboardConfig,
+  { id: string; data: Partial<DashboardConfig> }
+>('dashboard/updateConfig', async ({ id, data }) => {
+  const response = await api.put(`/dashboard/configs/${id}`, data);
+  return response.data;
+});
 
-export const deleteDashboardConfig = createAsyncThunk(
+export const deleteDashboardConfig = createAsyncThunk<string, string>(
   'dashboard/deleteConfig',
-  async (id: string) => {
+  async (id) => {
     await api.delete(`/dashboard/configs/${id}`);
     return id;
   }
 );
 
-export const setDefaultDashboardConfig = createAsyncThunk(
-  'dashboard/setDefaultConfig',
-  async (id: string) => {
-    const response = await api.put<DashboardConfig>(`/dashboard/configs/${id}/default`);
+export const setCurrentConfig = createAsyncThunk<DashboardConfig, string>(
+  'dashboard/setCurrentConfig',
+  async (id) => {
+    const response = await api.get(`/dashboard/configs/${id}`);
     return response.data;
   }
 );
@@ -64,18 +56,9 @@ const dashboardSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
-    setCurrentConfig: (state, action) => {
-      state.currentConfiguration = action.payload;
-    },
-    resetState: (state) => {
-      state.configurations = [];
-      state.currentConfiguration = null;
-      state.error = null;
-    },
   },
   extraReducers: (builder) => {
     builder
-      // Fetch Configs
       .addCase(fetchDashboardConfigs.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -86,28 +69,8 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchDashboardConfigs.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Error al obtener las configuraciones';
+        state.error = action.error.message || 'Error al cargar configuraciones';
       })
-      // Fetch Config by ID
-      .addCase(fetchDashboardConfigById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchDashboardConfigById.fulfilled, (state, action) => {
-        state.loading = false;
-        const index = state.configurations.findIndex((c) => c.id === action.payload.id);
-        if (index !== -1) {
-          state.configurations[index] = action.payload;
-        } else {
-          state.configurations.push(action.payload);
-        }
-        state.currentConfiguration = action.payload;
-      })
-      .addCase(fetchDashboardConfigById.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Error al obtener la configuración';
-      })
-      // Create Config
       .addCase(createDashboardConfig.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -115,13 +78,11 @@ const dashboardSlice = createSlice({
       .addCase(createDashboardConfig.fulfilled, (state, action) => {
         state.loading = false;
         state.configurations.push(action.payload);
-        state.currentConfiguration = action.payload;
       })
       .addCase(createDashboardConfig.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Error al crear la configuración';
+        state.error = action.error.message || 'Error al crear configuración';
       })
-      // Update Config
       .addCase(updateDashboardConfig.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -132,15 +93,14 @@ const dashboardSlice = createSlice({
         if (index !== -1) {
           state.configurations[index] = action.payload;
         }
-        if (state.currentConfiguration?.id === action.payload.id) {
-          state.currentConfiguration = action.payload;
+        if (state.currentConfig?.id === action.payload.id) {
+          state.currentConfig = action.payload;
         }
       })
       .addCase(updateDashboardConfig.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Error al actualizar la configuración';
+        state.error = action.error.message || 'Error al actualizar configuración';
       })
-      // Delete Config
       .addCase(deleteDashboardConfig.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -148,35 +108,28 @@ const dashboardSlice = createSlice({
       .addCase(deleteDashboardConfig.fulfilled, (state, action) => {
         state.loading = false;
         state.configurations = state.configurations.filter((c) => c.id !== action.payload);
-        if (state.currentConfiguration?.id === action.payload) {
-          state.currentConfiguration = null;
+        if (state.currentConfig?.id === action.payload) {
+          state.currentConfig = null;
         }
       })
       .addCase(deleteDashboardConfig.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Error al eliminar la configuración';
+        state.error = action.error.message || 'Error al eliminar configuración';
       })
-      // Set Default Config
-      .addCase(setDefaultDashboardConfig.pending, (state) => {
+      .addCase(setCurrentConfig.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(setDefaultDashboardConfig.fulfilled, (state, action) => {
+      .addCase(setCurrentConfig.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.configurations.findIndex((c) => c.id === action.payload.id);
-        if (index !== -1) {
-          state.configurations[index] = action.payload;
-        }
-        if (state.currentConfiguration?.id === action.payload.id) {
-          state.currentConfiguration = action.payload;
-        }
+        state.currentConfig = action.payload;
       })
-      .addCase(setDefaultDashboardConfig.rejected, (state, action) => {
+      .addCase(setCurrentConfig.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Error al establecer la configuración por defecto';
+        state.error = action.error.message || 'Error al cargar configuración actual';
       });
   },
 });
 
-export const { clearError, setCurrentConfig, resetState } = dashboardSlice.actions;
+export const { clearError } = dashboardSlice.actions;
 export default dashboardSlice.reducer; 

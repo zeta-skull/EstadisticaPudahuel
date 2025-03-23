@@ -1,47 +1,60 @@
+import { useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from './useStore';
-import { login, logout, register, getCurrentUser } from '@/store/slices/authSlice';
-import type { LoginData, RegisterData } from '@/types/auth';
-import type { RootState } from '@/store';
+import {
+  login,
+  register,
+  logout,
+  getCurrentUser,
+} from '@/store/slices/authSlice';
+import type { LoginData, RegisterData } from '@/types';
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
-  const { user, token, loading, error } = useAppSelector((state: RootState) => state.auth);
+  const { user, token, loading, error } = useAppSelector(
+    (state) => state.auth
+  );
 
-  const handleLogin = async (data: LoginData) => {
-    try {
-      await dispatch(login(data)).unwrap();
-      return true;
-    } catch (error) {
-      return false;
-    }
-  };
+  const handleLogin = useCallback(
+    async (data: LoginData) => {
+      try {
+        await dispatch(login(data)).unwrap();
+        return true;
+      } catch (error) {
+        return false;
+      }
+    },
+    [dispatch]
+  );
 
-  const handleRegister = async (data: RegisterData) => {
-    try {
-      await dispatch(register(data)).unwrap();
-      return true;
-    } catch (error) {
-      return false;
-    }
-  };
+  const handleRegister = useCallback(
+    async (data: RegisterData) => {
+      try {
+        await dispatch(register(data)).unwrap();
+        return true;
+      } catch (error) {
+        return false;
+      }
+    },
+    [dispatch]
+  );
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await dispatch(logout()).unwrap();
       return true;
     } catch (error) {
       return false;
     }
-  };
+  }, [dispatch]);
 
-  const loadCurrentUser = async () => {
+  const loadCurrentUser = useCallback(async () => {
     try {
       await dispatch(getCurrentUser()).unwrap();
       return true;
     } catch (error) {
       return false;
     }
-  };
+  }, [dispatch]);
 
   return {
     user,

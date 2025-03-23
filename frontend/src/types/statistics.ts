@@ -2,19 +2,20 @@ export interface Statistic {
   id: string;
   name: string;
   description: string;
-  type: string;
-  data: Record<string, any>;
+  type: 'line' | 'bar' | 'pie' | 'table';
+  data: Array<{
+    label: string;
+    value: number;
+  }>;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface StatisticData {
-  title: string;
+  name: string;
   description: string;
-  value: number;
-  unit: string;
-  category: string;
-  date: string;
+  type: string;
+  data: Record<string, any>;
 }
 
 export interface StatisticsState {

@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import type { StatisticsState, Statistic } from '@/types/statistics';
-import api from '@/services/api';
+import { api } from '@/services/api';
+import type { StatisticsState, Statistic } from '@/types';
 
 const initialState: StatisticsState = {
   statistics: [],
@@ -8,10 +8,10 @@ const initialState: StatisticsState = {
   error: null,
 };
 
-export const fetchStatistics = createAsyncThunk(
+export const fetchStatistics = createAsyncThunk<Statistic[]>(
   'statistics/fetchStatistics',
   async () => {
-    const response = await api.get<Statistic[]>('/statistics');
+    const response = await api.get('/statistics');
     return response.data;
   }
 );
@@ -24,25 +24,25 @@ export const fetchStatisticById = createAsyncThunk(
   }
 );
 
-export const createStatistic = createAsyncThunk(
+export const createStatistic = createAsyncThunk<Statistic, Omit<Statistic, 'id'>>(
   'statistics/createStatistic',
-  async (data: Omit<Statistic, 'id'>) => {
-    const response = await api.post<Statistic>('/statistics', data);
+  async (data) => {
+    const response = await api.post('/statistics', data);
     return response.data;
   }
 );
 
-export const updateStatistic = createAsyncThunk(
-  'statistics/updateStatistic',
-  async ({ id, data }: { id: string; data: Partial<Statistic> }) => {
-    const response = await api.put<Statistic>(`/statistics/${id}`, data);
-    return response.data;
-  }
-);
+export const updateStatistic = createAsyncThunk<
+  Statistic,
+  { id: string; data: Partial<Statistic> }
+>('statistics/updateStatistic', async ({ id, data }) => {
+  const response = await api.put(`/statistics/${id}`, data);
+  return response.data;
+});
 
-export const deleteStatistic = createAsyncThunk(
+export const deleteStatistic = createAsyncThunk<string, string>(
   'statistics/deleteStatistic',
-  async (id: string) => {
+  async (id) => {
     await api.delete(`/statistics/${id}`);
     return id;
   }
@@ -73,7 +73,7 @@ const statisticsSlice = createSlice({
       })
       .addCase(fetchStatistics.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Error al obtener las estadísticas';
+        state.error = action.error.message || 'Error al cargar estadísticas';
       })
       // Fetch Statistic by ID
       .addCase(fetchStatisticById.pending, (state) => {
@@ -104,7 +104,7 @@ const statisticsSlice = createSlice({
       })
       .addCase(createStatistic.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Error al crear la estadística';
+        state.error = action.error.message || 'Error al crear estadística';
       })
       // Update Statistic
       .addCase(updateStatistic.pending, (state) => {
@@ -120,7 +120,7 @@ const statisticsSlice = createSlice({
       })
       .addCase(updateStatistic.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Error al actualizar la estadística';
+        state.error = action.error.message || 'Error al actualizar estadística';
       })
       // Delete Statistic
       .addCase(deleteStatistic.pending, (state) => {
