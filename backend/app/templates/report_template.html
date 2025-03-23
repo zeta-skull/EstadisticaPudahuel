@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 2cm;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2em;
+            border-bottom: 2px solid #333;
+            padding-bottom: 1em;
+        }
+        .creation-date {
+            text-align: right;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 2em;
+        }
+        .description {
+            margin-bottom: 2em;
+            color: #444;
+        }
+        .statistic {
+            margin-bottom: 3em;
+        }
+        .statistic-title {
+            color: #1a73e8;
+            font-size: 1.2em;
+            margin-bottom: 0.5em;
+        }
+        .statistic-description {
+            color: #666;
+            margin-bottom: 1em;
+        }
+        .metadata {
+            background-color: #f5f5f5;
+            padding: 1em;
+            margin: 1em 0;
+            border-radius: 4px;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+        .table th {
+            background-color: #1a73e8;
+            color: white;
+            padding: 0.5em;
+            text-align: left;
+        }
+        .table td {
+            padding: 0.5em;
+            border: 1px solid #ddd;
+        }
+        .table-striped tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        @page {
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ title }}</h1>
+    </div>
+
+    <div class="creation-date">
+        Generado el: {{ creation_date }}
+    </div>
+
+    {% if description %}
+    <div class="description">
+        {{ description }}
+    </div>
+    {% endif %}
+
+    {% for stat in statistics %}
+    <div class="statistic">
+        <div class="statistic-title">{{ stat.title }}</div>
+        
+        {% if stat.description %}
+        <div class="statistic-description">{{ stat.description }}</div>
+        {% endif %}
+
+        {% if stat.metadata %}
+        <div class="metadata">
+            <strong>Metadatos:</strong><br>
+            Columnas: {{ stat.metadata.columns|length }}<br>
+            Filas: {{ stat.metadata.rows }}
+        </div>
+        {% endif %}
+
+        {{ stat.table|safe }}
+    </div>
+    {% endfor %}
+</body>
+</html> 
